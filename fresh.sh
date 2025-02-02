@@ -34,14 +34,9 @@ sudo apt search linux-oem-2
 # kernvar is the variable for the OEM kernel
 read -p $'\e[1;33mPlease enter which OEM kernel to install (e.g. linux-oem-22.04d):\e[0m ' kernvar
 
-# Purge Nvidia drivers
-sudo apt purge nvidia* -y
-
 # Install repositories
 # Flatpak is a software utility for software deployment, package management, and application virtualization
 sudo add-apt-repository -y ppa:flatpak/stable
-# Nvidia Graphics Drivers
-sudo add-apt-repository -y ppa:graphics-drivers
 # Papirus Icon Theme
 sudo add-apt-repository -y ppa:papirus/papirus
 
@@ -83,6 +78,7 @@ packages=(
   "wget"
   "curl"
   "papirus-icon-theme"
+  "x11vnc"
 )
 
 # Install Packages
@@ -98,11 +94,7 @@ update_system
 # List of Flatpaks to install
 flatpaks=(
   "com.github.tchx84.Flatseal"
-  "net.davidotek.pupgui2"
-  "tv.plex.PlexDesktop"
-  "org.gimp.GIMP"
-  "org.libretro.RetroArch"
-  "org.remmina.Remmina"
+  "org.qbittorrent.qBittorrent"
 )
 
 # Install Flatpaks
@@ -112,11 +104,14 @@ done
 
 echo "Flatpaks installed successfully."
 
-# Download and install the latest version of Steam from the official website
-wget https://steamcdn-a.akamaihd.net/client/installer/steam.deb
-sudo dpkg -i steam.deb
-sudo apt install -f -y
-rm steam.deb
+#Plex Server
+echo deb https://downloads.plex.tv/repo/deb public main | sudo tee /etc/apt/sources.list.d/plexmediaserver.list
+curl https://downloads.plex.tv/plex-keys/PlexSign.key | sudo apt-key add -
+sudo apt update -y
+sudo apt install -y plexmediaserver
+
+#Add Plex Group
+sudo adduser steven plex
 
 # Update the system
 update_system
