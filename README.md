@@ -1,2 +1,2 @@
 # Server Fresh Install
-BASH Script for Automating a Fresh Homelab Linux Server Install.
+BASH Script for automating a fresh homelab Linux server install.
