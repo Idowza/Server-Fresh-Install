@@ -24,15 +24,15 @@ update_system() {
   sudo apt autopurge -y
   sudo apt install -f -y
 }
-#update the system
-update_system
+# Initial system update
+sudo apt update -y
 
 # search for OEM kernels with the following command
 sudo apt search linux-oem-2
 
 # Set User Variables
 # kernvar is the variable for the OEM kernel
-read -p $'\e[1;33mPlease enter which OEM kernel to install (e.g. linux-oem-22.04d):\e[0m ' kernvar
+read -p $'\e[1;33mPlease enter which OEM kernel to install (e.g. linux-oem-22.04d) or press Enter to skip:\e[0m ' kernvar
 
 # Install repositories
 # Flatpak is a software utility for software deployment, package management, and application virtualization
@@ -40,16 +40,12 @@ sudo add-apt-repository -y ppa:flatpak/stable
 # Papirus Icon Theme
 sudo add-apt-repository -y ppa:papirus/papirus
 
-#update the system
-update_system
-
 # Function to install a package and check its status
 install_package() {
   local package=$1
   sudo apt install -y "$package"
   if [ $? -ne 0 ]; then
     echo "An error occurred during the installation of $package."
-    exit 1
   fi
 }
 
@@ -59,13 +55,11 @@ install_flatpak() {
   sudo flatpak install -y "$flatpak"
   if [ $? -ne 0 ]; then
     echo "An error occurred during the installation of $flatpak."
-    exit 1
   fi
 }
 
 # List of packages to install
 packages=(
-  "$kernvar"
   "nemo-image-converter"
   "nemo-media-columns"
   "openssh-server"
@@ -81,15 +75,17 @@ packages=(
   "x11vnc"
 )
 
+# Add kernel to package list if user provided one
+if [ -n "$kernvar" ]; then
+    packages+=("$kernvar")
+fi
+
 # Install Packages
 for package in "${packages[@]}"; do
   install_package "$package"
 done
 
 echo "Packages installed successfully."
-
-# Update the system
-update_system
 
 # List of Flatpaks to install
 flatpaks=(
@@ -104,14 +100,17 @@ done
 
 echo "Flatpaks installed successfully."
 
-#Plex Server
-echo deb https://downloads.plex.tv/repo/deb public main | sudo tee /etc/apt/sources.list.d/plexmediaserver.list
-curl https://downloads.plex.tv/plex-keys/PlexSign.key | sudo apt-key add -
+# Plex Server - Modern secure installation
+curl -fsSL https://downloads.plex.tv/plex-keys/PlexSign.key | sudo gpg --dearmor -o /usr/share/keyrings/plex-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/plex-archive-keyring.gpg] https://downloads.plex.tv/repo/deb public main" | sudo tee /etc/apt/sources.list.d/plexmediaserver.list > /dev/null
+
 sudo apt update -y
 sudo apt install -y plexmediaserver
 
-#Add Plex Group
-sudo adduser steven plex
+# Add Plex Group (Uses current user instead of hardcoded 'steven')
+# If running with sudo, use SUDO_USER, otherwise use USER
+TARGET_USER=${SUDO_USER:-$USER}
+sudo usermod -aG plex "$TARGET_USER"
 
 # Update the system
 update_system
